@@ -54,13 +54,13 @@ exports.register = async (req, res) => {
     const userId = userResult.insertId;
 
     // If registering as donor, add to donors table
-    if (role === 'donor' || !role) {
-      if (!blood_group || !city) {
-        return res.status(400).json({
-          success: false,
-          message: 'Blood group and city are required for donors'
-        });
-      }
+    if (role === 'donor') {  // ← Remove "|| !role"
+  if (!blood_group || !city) {
+    return res.status(400).json({
+      success: false,
+      message: 'Blood group and city are required for donors'
+    });
+  }
 
       await db.query(
         'INSERT INTO donors (user_id, blood_group, date_of_birth, gender, weight, city, state, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
