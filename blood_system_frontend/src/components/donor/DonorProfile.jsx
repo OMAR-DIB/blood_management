@@ -32,7 +32,11 @@ export default function DonorProfile() {
           address: result.payload.address || '',
           last_donation_date: result.payload.last_donation_date || '',
           is_available: result.payload.is_available ? '1' : '0',
-          medical_conditions: result.payload.medical_conditions || ''
+          medical_conditions: result.payload.medical_conditions || '',
+          availability_days: result.payload.availability_days || '',
+          availability_time_start: result.payload.availability_time_start || '09:00',
+          availability_time_end: result.payload.availability_time_end || '17:00',
+          preferred_contact_method: result.payload.preferred_contact_method || 'Both'
         });
       }
       setIsLoading(false);
@@ -225,6 +229,94 @@ export default function DonorProfile() {
                   onChange={handleChange}
                   className="input-field"
                 />
+              </div>
+
+              {/* Availability Schedule Section */}
+              <div className="md:col-span-2 border-t pt-6 mt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability Schedule</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Let hospitals know when you're available to donate blood
+                </p>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Available Days
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                    const isSelected = formData.availability_days?.split(',').includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          const days = formData.availability_days ? formData.availability_days.split(',') : [];
+                          if (isSelected) {
+                            setFormData({
+                              ...formData,
+                              availability_days: days.filter(d => d !== day).join(',')
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              availability_days: [...days, day].join(',')
+                            });
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg border-2 transition ${
+                          isSelected
+                            ? 'bg-red-600 text-white border-red-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-red-600'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Available From
+                </label>
+                <input
+                  type="time"
+                  name="availability_time_start"
+                  value={formData.availability_time_start}
+                  onChange={handleChange}
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Available Until
+                </label>
+                <input
+                  type="time"
+                  name="availability_time_end"
+                  value={formData.availability_time_end}
+                  onChange={handleChange}
+                  className="input-field"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Preferred Contact Method
+                </label>
+                <select
+                  name="preferred_contact_method"
+                  value={formData.preferred_contact_method}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="Phone">Phone</option>
+                  <option value="Email">Email</option>
+                  <option value="Both">Both</option>
+                </select>
               </div>
 
               <div className="md:col-span-2">

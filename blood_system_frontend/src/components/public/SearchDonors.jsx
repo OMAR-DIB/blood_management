@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDonors } from '../../redux/slices/donorSlice';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { Search, MapPin, Droplet, Phone, Mail } from 'lucide-react';
+import { Search, MapPin, Droplet, Phone, Mail, Clock, Calendar } from 'lucide-react';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -139,6 +139,34 @@ export default function SearchDonors() {
                         <span className="truncate">{donor.email}</span>
                       </div>
                     </div>
+
+                    {/* Availability Schedule */}
+                    {donor.availability_days && (
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          Available Days:
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {donor.availability_days.split(',').map((day) => (
+                            <span key={day} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                              {day}
+                            </span>
+                          ))}
+                        </div>
+                        {donor.availability_time_start && donor.availability_time_end && (
+                          <div className="mt-2 text-xs text-gray-600 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {donor.availability_time_start} - {donor.availability_time_end}
+                          </div>
+                        )}
+                        {donor.preferred_contact_method && (
+                          <div className="mt-1 text-xs text-gray-500">
+                            Prefers: {donor.preferred_contact_method}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {donor.last_donation_date && (
                       <div className="mt-4 pt-4 border-t text-sm text-gray-500">

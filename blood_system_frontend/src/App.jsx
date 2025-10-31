@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import Settings from './components/common/Settings';
 import Home from './components/public/Home';
 import SearchDonors from './components/public/SearchDonors';
 import Login from './components/auth/Login';
@@ -11,6 +12,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import DonorDashboard from './components/donor/DonorDashboard';
 import DonorProfile from './components/donor/DonorProfile';
 import AvailableRequests from './components/donor/AvailableRequests';
+import MyResponses from './components/donor/MyResponses';
 import HospitalDashboard from './components/hospital/HospitalDashboard';
 import CreateRequest from './components/hospital/CreateRequest';
 import MyRequests from './components/hospital/MyRequests';
@@ -61,6 +63,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['donor']}>
                 <AvailableRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/donor/my-responses"
+            element={
+              <ProtectedRoute allowedRoles={['donor']}>
+                <MyResponses />
               </ProtectedRoute>
             }
           />
@@ -121,6 +131,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Settings Route - Available for all authenticated users */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={['donor', 'hospital', 'admin']}>
+                <Settings />
               </ProtectedRoute>
             }
           />

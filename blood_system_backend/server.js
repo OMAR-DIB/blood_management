@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const donorRoutes = require('./routes/donorRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const donationResponseRoutes = require('./routes/donationResponseRoutes');
 
 dotenv.config();
 
@@ -32,9 +33,9 @@ app.use((req, res, next) => {
 
 // Health check route
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
-    status: 'OK', 
+    status: 'OK',
     message: 'Blood Bank API is running',
     timestamp: new Date().toISOString()
   });
@@ -45,6 +46,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/donors', donorRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/responses', donationResponseRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

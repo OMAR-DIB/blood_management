@@ -2,22 +2,43 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRequests } from '../../redux/slices/requestSlice';
+import { getProfile } from '../../redux/slices/authSlice';
+import { canDonate } from '../../utils/bloodCompatibility';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { MapPin, Calendar, Phone, AlertCircle, Filter } from 'lucide-react';
+import RespondToRequestModal from './RespondToRequestModal';
+import { MapPin, Calendar, Phone, AlertCircle, Filter, Heart, Info } from 'lucide-react';
 
 export default function AvailableRequests() {
   const dispatch = useDispatch();
   const { list: requests, isLoading } = useSelector((state) => state.requests);
+  const { user } = useSelector((state) => state.auth);
+  const [donorBloodGroup, setDonorBloodGroup] = useState(null);
   const [filters, setFilters] = useState({
     status: 'Open',
     urgency: '',
     blood_group: '',
     city: ''
   });
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
+    // Fetch donor's blood group from profile
+    dispatch(getProfile()).then((result) => {
+      if (result.payload && result.payload.profile) {
+        setDonorBloodGroup(result.payload.profile.blood_group);
+      }
+    });
     dispatch(fetchRequests(filters));
   }, []);
+
+  // Filter requests based on blood compatibility
+  const compatibleRequests = requests.filter((request) => {
+    if (!donorBloodGroup) return true; // Show all if blood group not loaded yet
+    return canDonate(donorBloodGroup, request.blood_group);
+  });
+
+  const incompatibleCount = requests.length - compatibleRequests.length;
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -122,18 +143,35 @@ export default function AvailableRequests() {
           </form>
         </div>
 
+        {/* Info Banner */}
+        {donorBloodGroup && incompatibleCount > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-blue-900 font-semibold">Your blood type: {donorBloodGroup}</p>
+              <p className="text-sm text-blue-700 mt-1">
+                Showing only compatible requests. {incompatibleCount} request(s) hidden due to blood type incompatibility.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Requests List */}
         {isLoading ? (
           <LoadingSpinner />
-        ) : requests.length === 0 ? (
+        ) : compatibleRequests.length === 0 ? (
           <div className="card text-center py-12">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-xl text-gray-600">No blood requests found</p>
-            <p className="text-gray-500 mt-2">Try adjusting your filters</p>
+            <p className="text-xl text-gray-600">No compatible blood requests found</p>
+            <p className="text-gray-500 mt-2">
+              {requests.length > 0
+                ? `${requests.length} request(s) available but incompatible with your blood type (${donorBloodGroup})`
+                : 'Try adjusting your filters'}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {requests.map((request) => (
+            {compatibleRequests.map((request) => (
               <div key={request.request_id} className="card hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -182,14 +220,40 @@ export default function AvailableRequests() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t flex items-center justify-between">
                   <p className="text-sm text-gray-600">
                     Patient: <span className="font-medium">{request.patient_name}</span>
                   </p>
+                  {request.status === 'Open' && (
+                    <button
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setShowModal(true);
+                      }}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Respond to Request
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {showModal && selectedRequest && (
+          <RespondToRequestModal
+            request={selectedRequest}
+            onClose={() => {
+              setShowModal(false);
+              setSelectedRequest(null);
+            }}
+            onSuccess={() => {
+              dispatch(fetchRequests(filters));
+              alert('Response submitted successfully! The hospital will contact you.');
+            }}
+          />
         )}
       </div>
     </div>

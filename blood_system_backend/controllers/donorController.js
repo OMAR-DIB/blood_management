@@ -132,7 +132,11 @@ exports.updateDonor = async (req, res) => {
       address,
       last_donation_date,
       is_available,
-      medical_conditions
+      medical_conditions,
+      availability_days,
+      availability_time_start,
+      availability_time_end,
+      preferred_contact_method
     } = req.body;
 
     const updates = [];
@@ -177,6 +181,22 @@ exports.updateDonor = async (req, res) => {
     if (medical_conditions !== undefined) {
       updates.push('medical_conditions = ?');
       params.push(medical_conditions);
+    }
+    if (availability_days !== undefined) {
+      updates.push('availability_days = ?');
+      params.push(availability_days);
+    }
+    if (availability_time_start) {
+      updates.push('availability_time_start = ?');
+      params.push(availability_time_start);
+    }
+    if (availability_time_end) {
+      updates.push('availability_time_end = ?');
+      params.push(availability_time_end);
+    }
+    if (preferred_contact_method) {
+      updates.push('preferred_contact_method = ?');
+      params.push(preferred_contact_method);
     }
 
     if (updates.length === 0) {

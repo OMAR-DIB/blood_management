@@ -210,3 +210,124 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
+
+// Update user profile (name, phone, email)
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { full_name, phone, email } = req.body;
+
+    const updates = [];
+    const params = [];
+
+    if (full_name) {
+      updates.push('full_name = ?');
+      params.push(full_name);
+    }
+    if (phone) {
+      updates.push('phone = ?');
+      params.push(phone);
+    }
+    if (email) {
+      // Check if email is already taken by another user
+      const [existingUser] = await db.query(
+        'SELECT user_id FROM users WHERE email = ? AND user_id != ?',
+        [email, userId]
+      );
+
+      if (existingUser.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use by another account'
+        });
+      }
+
+      updates.push('email = ?');
+      params.push(email);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update'
+      });
+    }
+
+    params.push(userId);
+
+    await db.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE user_id = ?`,
+      params
+    );
+
+    // Get updated profile
+    const [updatedUser] = await db.query(
+      'SELECT user_id, full_name, email, phone, role FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser[0]
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile'
+    });
+  }
+};
+
+// Delete user account (self-deletion)
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { password } = req.body;
+
+    // Require password confirmation
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required to delete account'
+      });
+    }
+
+    // Get user and verify password
+    const [users] = await db.query(
+      'SELECT password FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, users[0].password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Incorrect password'
+      });
+    }
+
+    // Delete user (cascade will delete related donor/hospital data)
+    await db.query('DELETE FROM users WHERE user_id = ?', [userId]);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete account'
+    });
+  }
+};

@@ -3,13 +3,16 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRequests, updateRequest, deleteRequest } from '../../redux/slices/requestSlice';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { Edit2, Trash2, FileText } from 'lucide-react';
+import ViewResponsesModal from './ViewResponsesModal';
+import { Edit2, Trash2, FileText, Users } from 'lucide-react';
 
 export default function MyRequests() {
   const dispatch = useDispatch();
   const { list: requests, isLoading } = useSelector((state) => state.requests);
   const [editingId, setEditingId] = useState(null);
   const [editStatus, setEditStatus] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showResponsesModal, setShowResponsesModal] = useState(false);
 
   useEffect(() => {
     dispatch(fetchRequests());
@@ -152,6 +155,16 @@ export default function MyRequests() {
                 <div className="flex items-center space-x-3 pt-4 border-t">
                   <button
                     onClick={() => {
+                      setSelectedRequest(request);
+                      setShowResponsesModal(true);
+                    }}
+                    className="text-green-600 hover:text-green-700 flex items-center space-x-1 text-sm"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>View Responses</span>
+                  </button>
+                  <button
+                    onClick={() => {
                       setEditingId(request.request_id);
                       setEditStatus(request.status);
                     }}
@@ -171,6 +184,16 @@ export default function MyRequests() {
               </div>
             ))}
           </div>
+        )}
+
+        {showResponsesModal && selectedRequest && (
+          <ViewResponsesModal
+            request={selectedRequest}
+            onClose={() => {
+              setShowResponsesModal(false);
+              setSelectedRequest(null);
+            }}
+          />
         )}
       </div>
     </div>
