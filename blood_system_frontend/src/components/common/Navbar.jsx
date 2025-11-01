@@ -2,7 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../redux/slices/authSlice';
-import { Droplet, Menu, X, LogOut, User } from 'lucide-react';
+import { Droplet, Menu, X, LogOut, User, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -45,6 +45,10 @@ export default function Navbar() {
               <>
                 <Link to={getDashboardLink()} className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                   Dashboard
+                </Link>
+                <Link to="/settings" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1">
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
                 </Link>
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-600">
@@ -92,6 +96,9 @@ export default function Navbar() {
               <>
                 <Link to={getDashboardLink()} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
                   Dashboard
+                </Link>
+                <Link to="/settings" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                  Settings
                 </Link>
                 <div className="px-3 py-2 text-sm text-gray-600">
                   {user?.full_name}

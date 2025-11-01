@@ -13,6 +13,7 @@ export default function MyRequests() {
   const [editStatus, setEditStatus] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showResponsesModal, setShowResponsesModal] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     dispatch(fetchRequests());
@@ -22,18 +23,27 @@ export default function MyRequests() {
     try {
       await dispatch(updateRequest({ id, data: { status: editStatus } })).unwrap();
       setEditingId(null);
-      dispatch(fetchRequests());
+      setMessage({ type: 'success', text: 'Status updated successfully!' });
+      await dispatch(fetchRequests());
+      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Failed to update request:', error);
+      setMessage({ type: 'error', text: error || 'Failed to update status' });
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this request?')) {
+    if (window.confirm('Are you sure you want to delete this request? This action cannot be undone.')) {
       try {
         await dispatch(deleteRequest(id)).unwrap();
+        setMessage({ type: 'success', text: 'Request deleted successfully!' });
+        await dispatch(fetchRequests());
+        setTimeout(() => setMessage(null), 3000);
       } catch (error) {
         console.error('Failed to delete request:', error);
+        setMessage({ type: 'error', text: error || 'Failed to delete request' });
+        setTimeout(() => setMessage(null), 3000);
       }
     }
   };
@@ -63,6 +73,16 @@ export default function MyRequests() {
           <h1 className="text-3xl font-bold text-gray-900">My Blood Requests</h1>
           <p className="text-gray-600 mt-2">Manage all your blood requests</p>
         </div>
+
+        {message && (
+          <div className={`mb-4 p-4 rounded-lg ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            {message.text}
+          </div>
+        )}
 
         {isLoading ? (
           <LoadingSpinner />
